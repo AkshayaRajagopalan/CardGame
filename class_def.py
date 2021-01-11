@@ -3,6 +3,7 @@ import random
 from time import sleep
 from tkinter import *
 import math
+import tkinter as tk
 
 from PIL import Image, ImageTk
 
@@ -56,9 +57,14 @@ class Person():
 
         root.update()
 
+    
+    def findXCenter(self, canvas, item):
+        xOffset = (canvas.winfo_reqwidth() / 2)
+        return xOffset + 250
+
     def bind_events(self, canvas, position, deck_position, full_deck):
-        canvas.tag_bind(position, '<B1-Motion>', lambda event, arg=canvas: self.onObjectMove(event, arg))
-        canvas.tag_bind(position, '<ButtonRelease-1>', lambda event, arg=canvas, arg1=[canvas.coords(i) for i in deck_position], arg2=full_deck: self.onObjectRelease(event, arg, arg1, arg2))      
+        canvas.tag_bind(position, '<B1-Motion>', lambda event, arg=canvas: self.onObjectMove_turn(event, arg))
+        canvas.tag_bind(position, '<ButtonRelease-1>', lambda event, arg=canvas, arg1=[canvas.coords(i) for i in deck_position], arg2=full_deck: self.onObjectRelease_turn(event, arg, arg1, arg2))      
 
     def unbind_events_single(self, canvas, position):
         canvas.tag_unbind(position, '<B1-Motion>')
@@ -67,7 +73,7 @@ class Person():
     def move_card(self, canvas, position, x, y, x_offset = 0, y_offset = 0):
         canvas.coords(position, x + x_offset, y + y_offset)
 
-    def onObjectMove(self, event, canvas):                  
+    def onObjectMove_turn(self, event, canvas):                  
         current = event.widget.find_withtag('current')[0]
         for monster, trap in zip(self.MonsterSlots, self.TrapSlots):
            if monster.check_eligibility(list(self.deck_ref.values())[math.floor((54 - int(current))/2)]):
@@ -78,7 +84,7 @@ class Person():
 
 
 
-    def onObjectRelease(self, event, canvas, deck_prev_position, full_deck): 
+    def onObjectRelease_turn(self, event, canvas, deck_prev_position, full_deck): 
         current = event.widget.find_withtag('current')[0]
         overlap_monster = [i.check_slot_criterion(canvas, event.x, event.y, list(self.deck_ref.values())[math.floor((54 - int(current))/2)], current) for i in self.MonsterSlots]
         overlap_trap = [i.check_slot_criterion(canvas, event.x, event.y, list(self.deck_ref.values())[math.floor((54 - int(current))/2)], current) for i in self.TrapSlots]
@@ -164,6 +170,28 @@ class TrapSlot():
 class Human(Person):
     def __init__(self, canvas, monster_coords, trap_coords):
         super(Human, self).__init__(canvas, monster_coords, trap_coords)
+    
+    def turn(self, canvas, root):
+        textId = canvas.create_text(0, 0, fill="blue", font="Times 20 bold", text="Your turn")
+        offset = self.findXCenter(canvas, textId)
+        canvas.move(textId, offset, 400)
+        root.after(31000, lambda: canvas.delete(textId))
+        root.update()
+        label = tk.Label(root, font="Times 20 bold")
+        label.place(x=offset-20, y=450)
+        self.countdown(label, 30, root)
+        root.after(31000, lambda: label.destroy())
+        root.update()
+    
+    def countdown(self, label, num, root):
+        label['text'] = num
+        if num > 0:
+            root.after(1000, self.countdown, label, num-1, root)
+            root.update()
+
+    def findXCenter(self, canvas, item):
+        return super().findXCenter(canvas, item)
+        
 
 
 class AI(Person):
@@ -172,3 +200,6 @@ class AI(Person):
 
     def bind_events(self, canvas, position, deck_position, full_deck):
         pass
+    
+    def findXCenter(self, canvas, item):
+        return super().findXCenter(canvas, item)

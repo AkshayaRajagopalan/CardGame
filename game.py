@@ -27,6 +27,9 @@ class MyCardGame:
         for i in range(0, 7*len(self.people), len(self.people)):
             self.people[0].draw(root, self.canvas, self.deck_position, self.deck_object.deck, self.deck, i, int(i/len(self.people)), 45, 25, 770)
             self.people[1].draw(root, self.canvas, self.deck_position, self.deck_object.deck, self.deck, i+1, int(i/len(self.people)), 45, 25, 70)
+        self.people[0].turn(self.canvas, root)
+        #self.people[0].unbind_events_single(self.canvas, self.deck_position)
+        #self.people[0].attack(self.canvas, root)
 
 root = Tk()
 my_gui = MyCardGame()
